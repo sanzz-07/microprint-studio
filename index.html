@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ta" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroPrint Studio | Ultra HD பிட் பிரிண்ட் மேக்கர் & PDF ஆதரவு</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- PDF.js for parsing and rendering uploaded PDF files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Google Fonts for Tamil support -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Configure PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Hind Madurai', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom print preview aspect ratio styling */
+        .a4-preview {
+            aspect-ratio: 1 / 1.4142; /* Standard A4 aspect ratio */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+        /* Grid background pattern */
+        .bg-grid {
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid font-bold fa-bolt"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white">MicroPrint <span class="text-emerald-400">Studio</span> <span class="text-xs bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded ml-1">ULTRA HD</span></h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">தெளிவான மைக்ரோ பிட் பிரிண்ட் மேக்கர் (HD Quality Engine)</p>
+                </div>
+            </div>
+
+            <!-- Header Badge / Actions -->
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> 300 DPI Ultra Crisp
+                </span>
+                <button onclick="resetAll()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>ரீசெட் (Reset)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Controls & Settings (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col space-y-6">
+
+            <!-- Quality Tier Selector -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 rounded-2xl p-5 border border-emerald-500/30 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-md font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i>
+                        பிரிண்ட் குவாலிட்டி (Resolution Scale)
+                    </h2>
+                    <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">4K Crisp</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setQualityTier('1')" id="btn-q-1" class="quality-btn text-center p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 transition">
+                        <div class="text-xs font-bold">Standard</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">1x Resolution</div>
+                    </button>
+                    <button onclick="setQualityTier('2')" id="btn-q-2" class="quality-btn text-center p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 transition">
+                        <div class="text-xs font-bold">High (2x)</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Clear HD</div>
+                    </button>
+                    <button onclick="setQualityTier('3')" id="btn-q-3" class="quality-btn active text-center p-2.5 rounded-xl border bg-slate-800 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/10 transition">
+                        <div class="text-xs font-bold flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> Ultra HD
+                        </div>
+                        <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">3x / 300 DPI</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 1: Upload Box -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-md font-semibold text-white flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">1</span>
+                        PDF / போட்டோ அப்லோட் (Upload File)
+                    </h2>
+                    <span class="text-xs text-slate-400" id="file-count">0 பக்கம்(கள்)</span>
+                </div>
+
+                <!-- Dropzone -->
+                <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-6 text-center bg-slate-950/50 transition cursor-pointer group relative">
+                    <input type="file" id="file-input" multiple accept="image/*,.pdf" class="hidden">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-emerald-500/10 text-slate-400 group-hover:text-emerald-400 mx-auto flex items-center justify-center mb-3 transition">
+                        <i class="fa-solid fa-file-arrow-up text-xl"></i>
+                    </div>
+                    <p class="text-sm font-medium text-slate-200">PDF அல்லது போட்டோவை டிராக் / க்ளிக் செய்யவும்</p>
+                    <p class="text-xs text-slate-400 mt-1">PDF, PNG, JPG, JPEG (PDF பக்கங்கள் Ultra HD தரத்தில் பிரிக்கப்படும்)</p>
+                </div>
+
+                <!-- PDF Loading Indicator -->
+                <div id="pdf-loader" class="hidden mt-3 p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center gap-3">
+                    <div class="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs text-slate-300 font-medium" id="pdf-status-text">Ultra HD தரத்தில் செயலாக்கப்படுகிறது...</span>
+                </div>
+
+                <!-- Thumbnails List -->
+                <div id="thumbnails-container" class="grid grid-cols-4 gap-2 mt-4 max-h-40 overflow-y-auto pr-1 hidden">
+                    <!-- Dynamic Thumbnails inserted via JS -->
+                </div>
+            </div>
+
+            <!-- Step 2: Micro-Print Size Preset -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <h2 class="text-md font-semibold text-white flex items-center gap-2 mb-4">
+                    <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">2</span>
+                    அளவு & லேஅவுட் (Print Size & Layout)
+                </h2>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="setSizePreset('pocket')" id="btn-preset-pocket" class="preset-btn active text-left p-3 rounded-xl border bg-slate-800 border-emerald-500 text-slate-200 hover:border-emerald-500 transition relative">
+                        <div class="text-xs text-emerald-400 font-semibold mb-0.5">பாக்கெட் பிட் (Pocket Bit)</div>
+                        <div class="text-sm font-bold">3.5 x 5 cm</div>
+                        <div class="text-[10px] text-slate-400 mt-1">A4 தாளில் ~20-25 துண்டுகள்</div>
+                    </button>
+                    <button onclick="setSizePreset('micro')" id="btn-preset-micro" class="preset-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 transition">
+                        <div class="text-xs text-slate-400 font-semibold mb-0.5">அல்ட்ரா மைக்ரோ (Ultra Micro)</div>
+                        <div class="text-sm font-bold">2.5 x 3.5 cm</div>
+                        <div class="text-[10px] text-slate-400 mt-1">A4 தாளில் ~40-49 துண்டுகள்</div>
+                    </button>
+                    <button onclick="setSizePreset('strip')" id="btn-preset-strip" class="preset-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 transition">
+                        <div class="text-xs text-slate-400 font-semibold mb-0.5">2-Column Strip</div>
+                        <div class="text-sm font-bold">6 x 9 cm</div>
+                        <div class="text-[10px] text-slate-400 mt-1">A4 தாளில் ~8-9 துண்டுகள்</div>
+                    </button>
+                    <button onclick="setSizePreset('4up')" id="btn-preset-4up" class="preset-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 transition">
+                        <div class="text-xs text-slate-400 font-semibold mb-0.5">4-Up Mini Sheet</div>
+                        <div class="text-sm font-bold">9 x 13 cm</div>
+                        <div class="text-[10px] text-slate-400 mt-1">A4 தாளில் 4 துண்டுகள்</div>
+                    </button>
+                </div>
+
+                <!-- Custom Grid Density Controls -->
+                <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+                    <label class="text-xs text-slate-300 flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="show-cutlines" checked onchange="updatePreview()" class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-950">
+                        <span>வெட்டு கோடுகள் (Cut Guide Lines)</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400">காப்பிகள்:</span>
+                        <input type="number" id="repeat-count" value="1" min="1" max="50" onchange="updatePreview()" class="w-14 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-center text-emerald-400 font-bold focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Legibility & Text Sharpening Controls -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <h2 class="text-md font-semibold text-white flex items-center gap-2 mb-4">
+                    <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">3</span>
+                    எழுத்து தெளிவுத்தன்மை (Micro Sharpening)
+                </h2>
+
+                <div class="space-y-4">
+                    <!-- Text Sharpening Threshold Mode -->
+                    <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-eye text-emerald-400"></i> எழுத்து ஷார்பனர் (Ultra Sharp Text)
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">சின்ன எழுத்துக்கள் உடையாமல் தெளிவாக காட்டும்</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-sharpen" checked onchange="updateFilters()" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+
+                    <!-- Contrast Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300"><i class="fa-solid fa-circle-half-stroke text-emerald-400 mr-1"></i> கான்ட்ராஸ்ட் (Contrast)</span>
+                            <span class="text-emerald-400 font-semibold" id="val-contrast">150%</span>
+                        </div>
+                        <input type="range" id="input-contrast" min="80" max="250" value="150" oninput="updateFilters()" class="w-full accent-emerald-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+
+                    <!-- Brightness Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300"><i class="fa-regular fa-sun text-emerald-400 mr-1"></i> பிரைட்னஸ் (Brightness)</span>
+                            <span class="text-emerald-400 font-semibold" id="val-brightness">105%</span>
+                        </div>
+                        <input type="range" id="input-brightness" min="70" max="160" value="105" oninput="updateFilters()" class="w-full accent-emerald-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+
+                    <!-- Black & White / Document Scan Mode -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                        <span class="text-xs text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-print text-amber-400"></i> B&W ஜெராக்ஸ் மோட் (Monochrome)
+                        </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-grayscale" checked onchange="updateFilters()" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Export Buttons -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl space-y-3">
+                <button onclick="downloadPDF()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 font-bold text-slate-950 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition transform active:scale-[0.99]">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                    <span>Ultra HD A4 PDF டவுன்லோட் (Download 300 DPI PDF)</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Live A4 Canvas Sheet Preview (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col items-center">
+            
+            <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col items-center relative overflow-hidden min-h-[600px] bg-grid">
+                
+                <!-- Preview Header Status -->
+                <div class="w-full flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-emerald-400"></i>
+                        <h3 class="text-sm font-semibold text-slate-200">A4 பிரிண்ட் லைவ் பிரிவியூ (Live Preview)</h3>
+                    </div>
+                    <span class="text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800" id="preview-dim-info">3.5 x 5 cm • ~20 துண்டுகள்</span>
+                </div>
+
+                <!-- Printable Paper Sheet Container -->
+                <div class="w-full max-w-[480px] bg-white rounded-sm text-slate-900 a4-preview p-3 relative flex flex-col justify-start overflow-hidden transition-all duration-300" id="paper-sheet">
+                    
+                    <!-- Paper Content Grid -->
+                    <div id="print-grid" class="w-full h-full grid gap-1 items-start justify-center overflow-hidden">
+                        <!-- Empty State Notice -->
+                        <div id="empty-state" class="col-span-full h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center my-auto">
+                            <i class="fa-solid fa-file-pdf text-4xl mb-3 text-slate-300"></i>
+                            <p class="text-sm font-semibold text-slate-600">PDF அல்லது நோட்ஸ் படங்கள் எதுவும் ஏற்றப்படவில்லை</p>
+                            <p class="text-xs text-slate-400 mt-1">மைக்ரோசாஃப்ட் எட்ஜ் அல்லது கணினியிலிருந்து ஃபைலை அப்லோட் செய்யவும்.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Print Tips Footer -->
+                <div class="mt-6 text-center max-w-md">
+                    <p class="text-xs text-slate-400 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-circle-info text-emerald-400"></i>
+                        <span><strong>Ultra HD டிப்:</strong> சிறிய எழுத்துக்களும் உடையாமல் இருக்க 3x Ultra HD செட்டிங் தேர்வு செய்யவும்.</span>
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- App Logic Script -->
+    <script>
+        // State variables
+        let uploadedFiles = []; // Array of converted Image items {id, src, type, label}
+        let currentPreset = 'pocket'; // 'pocket', 'micro', 'strip', '4up'
+        let qualityTier = '3'; // '1': 1x, '2': 2x, '3': 3x Ultra HD
+        
+        const PRESETS = {
+            'pocket': { width: '3.5cm', height: '5cm', gridCols: 5, gridRows: 5, label: '3.5 x 5 cm • ~20-25 துண்டுகள்', mmW: 35, mmH: 50 },
+            'micro': { width: '2.5cm', height: '3.5cm', gridCols: 7, gridRows: 7, label: '2.5 x 3.5 cm • ~40-49 துண்டுகள்', mmW: 25, mmH: 35 },
+            'strip': { width: '6cm', height: '9cm', gridCols: 3, gridRows: 3, label: '6 x 9 cm • ~8-9 துண்டுகள்', mmW: 60, mmH: 90 },
+            '4up': { width: '9cm', height: '13cm', gridCols: 2, gridRows: 2, label: '9 x 13 cm • 4 துண்டுகள்', mmW: 90, mmH: 130 }
+        };
+
+        // DOM Elements
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const thumbnailsContainer = document.getElementById('thumbnails-container');
+        const fileCountEl = document.getElementById('file-count');
+        const printGrid = document.getElementById('print-grid');
+        const emptyState = document.getElementById('empty-state');
+        const previewDimInfo = document.getElementById('preview-dim-info');
+        const pdfLoader = document.getElementById('pdf-loader');
+        const pdfStatusText = document.getElementById('pdf-status-text');
+
+        // Initialize Event Listeners
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-emerald-500', 'bg-emerald-500/10');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+            if (e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFiles(e.target.files);
+            }
+        });
+
+        // Set HD Quality Tier Mode
+        function setQualityTier(tier) {
+            qualityTier = tier;
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-emerald-500', 'bg-slate-800', 'text-emerald-400');
+                btn.classList.add('border-slate-800', 'bg-slate-950/60', 'text-slate-300');
+            });
+
+            const activeBtn = document.getElementById(`btn-q-${tier}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'border-emerald-500', 'bg-slate-800', 'text-emerald-400');
+                activeBtn.classList.remove('border-slate-800', 'bg-slate-950/60', 'text-slate-300');
+            }
+            updatePreview();
+        }
+
+        // Handle uploaded image and PDF files
+        async function handleFiles(files) {
+            const fileList = Array.from(files);
+
+            for (const file of fileList) {
+                if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                    await processPDFFile(file);
+                } else if (file.type.startsWith('image/')) {
+                    await processImageFile(file);
+                }
+            }
+        }
+
+        // Process Image Upload into high resolution canvas memory
+        function processImageFile(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedFiles.push({
+                        id: Date.now() + Math.random(),
+                        src: e.target.result,
+                        type: 'image',
+                        label: 'Img'
+                    });
+                    renderThumbnails();
+                    updatePreview();
+                    resolve();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Process PDF Upload with High-DPI scale viewport rendering
+        async function processPDFFile(file) {
+            pdfLoader.classList.remove('hidden');
+            pdfStatusText.textContent = `Ultra HD PDF வாசிக்கப்படுகிறது (${file.name})...`;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdf.numPages;
+
+                // Scale factor according to quality tier (3.2x for Ultra HD)
+                const renderScale = qualityTier === '3' ? 3.2 : (qualityTier === '2' ? 2.0 : 1.2);
+
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    pdfStatusText.textContent = `பக்கம் ${pageNum} / ${totalPages} HD தரத்தில் ரெண்டர் செய்யப்படுகிறது...`;
+                    
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: renderScale });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Enable smooth image quality rendering
+                    context.imageSmoothingEnabled = true;
+                    context.imageSmoothingQuality = 'high';
+
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+
+                    const dataUrl = canvas.toDataURL('image/png', 1.0);
+
+                    uploadedFiles.push({
+                        id: Date.now() + Math.random(),
+                        src: dataUrl,
+                        type: 'pdf',
+                        label: `PDF P.${pageNum}`
+                    });
+
+                    renderThumbnails();
+                    updatePreview();
+                }
+            } catch (error) {
+                console.error("PDF Read Error:", error);
+                alert("PDF ஃபைலை திறப்பதில் சிக்கல் ஏற்பட்டது. தயவுசெய்து சரியான PDF ஃபைலை தேர்ந்தெடுக்கவும்.");
+            } finally {
+                pdfLoader.classList.add('hidden');
+            }
+        }
+
+        // Render thumbnails in step 1
+        function renderThumbnails() {
+            if (uploadedFiles.length > 0) {
+                thumbnailsContainer.classList.remove('hidden');
+            } else {
+                thumbnailsContainer.classList.add('hidden');
+            }
+
+            thumbnailsContainer.innerHTML = '';
+            fileCountEl.textContent = `${uploadedFiles.length} பக்கம்(கள்)`;
+
+            uploadedFiles.forEach((fileObj, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'relative group aspect-square rounded-lg overflow-hidden border border-slate-700 bg-slate-950';
+                thumb.innerHTML = `
+                    <img src="${fileObj.src}" class="w-full h-full object-cover">
+                    <span class="absolute bottom-0 left-0 right-0 bg-slate-950/80 text-[9px] text-center text-slate-300 truncate px-1">${fileObj.label}</span>
+                    <button onclick="removeImage(${index})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] opacity-90 hover:opacity-100 transition shadow">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                thumbnailsContainer.appendChild(thumb);
+            });
+        }
+
+        // Remove single item
+        function removeImage(index) {
+            uploadedFiles.splice(index, 1);
+            renderThumbnails();
+            updatePreview();
+        }
+
+        // Reset All
+        function resetAll() {
+            uploadedFiles = [];
+            fileInput.value = '';
+            renderThumbnails();
+            updatePreview();
+        }
+
+        // Set preset sizes
+        function setSizePreset(presetKey) {
+            currentPreset = presetKey;
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-emerald-500', 'bg-slate-800');
+                btn.classList.add('border-slate-800', 'bg-slate-950/60');
+            });
+
+            const activeBtn = document.getElementById(`btn-preset-${presetKey}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'border-emerald-500', 'bg-slate-800');
+                activeBtn.classList.remove('border-slate-800', 'bg-slate-950/60');
+            }
+
+            previewDimInfo.textContent = PRESETS[presetKey].label;
+            updatePreview();
+        }
+
+        // Update Legibility Filter UI Labels & Apply Style
+        function updateFilters() {
+            const contrast = document.getElementById('input-contrast').value;
+            const brightness = document.getElementById('input-brightness').value;
+            const grayscale = document.getElementById('toggle-grayscale').checked;
+            const sharpen = document.getElementById('toggle-sharpen').checked;
+
+            document.getElementById('val-contrast').textContent = `${contrast}%`;
+            document.getElementById('val-brightness').textContent = `${brightness}%`;
+
+            const images = printGrid.querySelectorAll('img');
+            images.forEach(img => {
+                let filterStyle = `contrast(${contrast}%) brightness(${brightness}%) ${grayscale ? 'grayscale(100%)' : ''}`;
+                if (sharpen) {
+                    filterStyle += ` drop-shadow(0px 0px 0.2px rgba(0,0,0,0.9))`;
+                }
+                img.style.filter = filterStyle;
+            });
+        }
+
+        // Render the main A4 Grid preview
+        function updatePreview() {
+            printGrid.innerHTML = '';
+
+            if (uploadedFiles.length === 0) {
+                printGrid.appendChild(emptyState);
+                return;
+            }
+
+            const preset = PRESETS[currentPreset];
+            const repeatCount = parseInt(document.getElementById('repeat-count').value) || 1;
+            const showCutlines = document.getElementById('show-cutlines').checked;
+
+            // Configure Grid CSS dynamically
+            printGrid.style.gridTemplateColumns = `repeat(${preset.gridCols}, minmax(0, 1fr))`;
+
+            const contrast = document.getElementById('input-contrast').value;
+            const brightness = document.getElementById('input-brightness').value;
+            const grayscale = document.getElementById('toggle-grayscale').checked;
+            const sharpen = document.getElementById('toggle-sharpen').checked;
+
+            // Generate repeated items list
+            let displayItems = [];
+            for (let r = 0; r < repeatCount; r++) {
+                uploadedFiles.forEach(file => {
+                    displayItems.push(file);
+                });
+            }
+
+            // Limit total max tiles to fit A4 layout gracefully
+            const maxTiles = preset.gridCols * preset.gridRows;
+            const finalItems = displayItems.slice(0, maxTiles);
+
+            finalItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `relative w-full aspect-[3/4] bg-white overflow-hidden flex items-center justify-center ${showCutlines ? 'border border-dashed border-slate-400' : ''}`;
+                
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.className = 'w-full h-full object-contain';
+                
+                let filterStyle = `contrast(${contrast}%) brightness(${brightness}%) ${grayscale ? 'grayscale(100%)' : ''}`;
+                if (sharpen) {
+                    filterStyle += ` drop-shadow(0px 0px 0.2px rgba(0,0,0,0.9))`;
+                }
+                img.style.filter = filterStyle;
+
+                card.appendChild(img);
+                printGrid.appendChild(card);
+            });
+        }
+
+        // Export as High-Resolution Printable PDF
+        async function downloadPDF() {
+            if (uploadedFiles.length === 0) {
+                alert('தயவுசெய்து முதலில் PDF அல்லது போட்டோக்களை அப்லோட் செய்யவும்!');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const preset = PRESETS[currentPreset];
+            const repeatCount = parseInt(document.getElementById('repeat-count').value) || 1;
+            const showCutlines = document.getElementById('show-cutlines').checked;
+
+            const contrast = document.getElementById('input-contrast').value;
+            const brightness = document.getElementById('input-brightness').value;
+            const grayscale = document.getElementById('toggle-grayscale').checked;
+            const sharpen = document.getElementById('toggle-sharpen').checked;
+
+            // Prepare list of items
+            let items = [];
+            for (let r = 0; r < repeatCount; r++) {
+                uploadedFiles.forEach(f => items.push(f));
+            }
+
+            const marginX = 10;
+            const marginY = 10;
+            const cardW = preset.mmW;
+            const cardH = preset.mmH;
+
+            let currentX = marginX;
+            let currentY = marginY;
+
+            // Process image filtering onto high-res canvas for crisp PDF export
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const processedImgData = await processImageForPrint(item.src, contrast, brightness, grayscale, sharpen, qualityTier);
+
+                // Add Cut outline if enabled
+                if (showCutlines) {
+                    doc.setLineWidth(0.1);
+                    doc.setDrawColor(180, 180, 180);
+                    doc.rect(currentX, currentY, cardW, cardH, 'S');
+                }
+
+                doc.addImage(processedImgData, 'PNG', currentX, currentY, cardW, cardH, undefined, 'FAST');
+
+                // Grid positioning
+                currentX += cardW + 2;
+                if (currentX + cardW > 210 - marginX) {
+                    currentX = marginX;
+                    currentY += cardH + 2;
+                }
+
+                if (currentY + cardH > 297 - marginY) {
+                    if (i < items.length - 1) {
+                        doc.addPage();
+                        currentX = marginX;
+                        currentY = marginY;
+                    }
+                }
+            }
+
+            doc.save(`MicroPrint_UltraHD_Notes_${currentPreset}.pdf`);
+        }
+
+        // Helper: Filter & scale image using HTML5 canvas
+        function processImageForPrint(src, contrast, brightness, grayscale, sharpen, tier) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    
+                    // Upscale factor based on resolution tier
+                    const scaleFactor = tier === '3' ? 3 : (tier === '2' ? 2 : 1);
+                    canvas.width = img.width * scaleFactor;
+                    canvas.height = img.height * scaleFactor;
+                    
+                    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    let filterStyle = `contrast(${contrast}%) brightness(${brightness}%) ${grayscale ? 'grayscale(100%)' : ''}`;
+                    if (sharpen) {
+                        filterStyle += ` drop-shadow(0px 0px 0.5px rgba(0,0,0,1))`;
+                    }
+                    ctx.filter = filterStyle;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    resolve(canvas.toDataURL('image/png', 1.0));
+                };
+                img.src = src;
+            });
+        }
+
+        // Run on load
+        window.onload = function() {
+            updatePreview();
+        };
+    </script>
+</body>
+</html>
